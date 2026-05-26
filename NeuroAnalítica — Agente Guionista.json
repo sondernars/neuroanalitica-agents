@@ -1,0 +1,246 @@
+{
+  "name": "NeuroAnalítica — Agente Guionista",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "75055544-0d26-4714-a369-bb4174cfc81e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=309862268#gid=309862268",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1814157305,
+          "mode": "list",
+          "cachedResultName": "Plan Editorial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1814157305"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8955ce56-ecb8-4c01-ac42-a84bcd4c0d65",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Escribe el guion completo para esta pieza de NeuroAnalítica:\n\nTítulo: {{ $json.Titulo }}\nFormato: {{ $json.Formato }}\nPilar: {{ $json.Pilar }}\nFunción: {{ $json[\"Funcion \"] }}\n\nSigue tus instrucciones y devuelve el JSON."
+            }
+          ]
+        },
+        "options": {
+          "system": "Eres el agente guionista de NeuroAnalítica, un centro clínico que integra neuropsicología y psicoanálisis. Tu única función es escribir guiones completos para contenido de Instagram basándote en la pieza que te dan.  REGLAS FIJAS: - El guion debe sonar humano, cercano y clínicamente sólido. Nunca robótico. - Adapta la extensión al formato: reel (30s = ~80 palabras), carrusel (5-7 slides), stories (3 slides). - Nunca ofrezcas diagnósticos ni promesas de resultado. - Nunca uses lenguaje de autoayuda genérico. - Siempre hay un giro clínico o neuropsicológico que diferencia el contenido.  ESTRUCTURA OBLIGATORIA: - Hook (0-2s): frase fuerte que para el scroll. Pregunta, contradicción o verdad incómoda. - Desarrollo: el insight clínico explicado simple. Máximo 3 ideas. - CTA: sutil, sin vender. Invita a guardar, comentar o escribir por DM.  FORMATO DE SALIDA: Responde ÚNICAMENTE con un JSON válido, sin texto antes ni después:  {   \"titulo\": \"texto\",   \"formato\": \"reel|carrusel|stories\",   \"hook\": \"texto del hook\",   \"desarrollo\": \"texto del desarrollo completo\",   \"cta\": \"texto del CTA\" }",
+          "maxTokens": 4000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        624,
+        0
+      ],
+      "id": "e4b234ac-ca09-4ff5-b5c8-8dfca991a089",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "kzMxFzf153BS5H7c",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  try {\n    const raw = item.json.content[0].text;\n    const cleaned = raw.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\n    const guion = JSON.parse(cleaned);\n    \n    results.push({\n      json: {\n        Semana: 1,\n        Titulo: guion.titulo,\n        Hook: guion.hook,\n        Desarrollo: guion.desarrollo,\n        CTA: guion.cta\n      }\n    });\n  } catch(e) {\n    results.push({\n      json: {\n        Semana: 1,\n        Titulo: \"ERROR\",\n        Hook: e.message,\n        Desarrollo: \"\",\n        CTA: \"\"\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        0
+      ],
+      "id": "feaa9264-193a-43c3-8849-cbcaa0db97b3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=309862268#gid=309862268",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1244045211,
+          "mode": "list",
+          "cachedResultName": "Guiones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1244045211"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semana": "={{ $json.Semana }}",
+            "Titulo": "={{ $json.Titulo }}",
+            "Hook": "={{ $json.Hook }}",
+            "Desarrollo": "={{ $json.Desarrollo }}",
+            "CTA": "={{ $json.CTA }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Semana",
+              "displayName": "Semana",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Titulo",
+              "displayName": "Titulo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hook",
+              "displayName": "Hook",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Desarrollo",
+              "displayName": "Desarrollo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "CTA",
+              "displayName": "CTA",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1184,
+        0
+      ],
+      "id": "bc2684a4-5ed0-4c06-aa2f-330cf720c16a",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a3a22ae7-c96f-414e-aec0-cbe6736bb932",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c153ee72bcf142a316fe9447104fa533601176816011db9fc18b2807be3ec3b6"
+  },
+  "id": "tAjDoT60iatduqg3",
+  "tags": []
+}

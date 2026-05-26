@@ -1,0 +1,258 @@
+{
+  "name": "NeuroAnalítica — Agente Estratega",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bb454436-78a7-4a48-8e99-25d58780c9f0",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=309862268#gid=309862268",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 309862268,
+          "mode": "list",
+          "cachedResultName": "Métricas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=309862268"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "1ad0799d-b0cd-4041-9dd8-9c7033deb963",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Estas son las métricas de la semana anterior de NeuroAnalítica en Instagram:\n\n{{ $json }}\n\nProduce el plan editorial para la próxima semana siguiendo tus instrucciones."
+            }
+          ]
+        },
+        "options": {
+          "system": "Eres el agente estratega de NeuroAnalítica, un centro clínico que integra neuropsicología y psicoanálisis. Tu única función es producir el plan editorial semanal de Instagram basándote en las métricas de la semana anterior.  REGLAS FIJAS: - Aplica siempre la regla 80/15/5: 80% alcance, 15% autoridad, 5% conversión. - Produce siempre exactamente 14 piezas por semana. - Si no hay métricas previas, asume que es semana 1 y genera un plan base equilibrado. - Nunca inventes datos ni claims clínicos. - Nunca ofrezcas diagnósticos ni intervenciones clínicas.  PILARES TEMÁTICOS: - ansiedad_y_sobrepensamieto (alcance) - relaciones_y_apego (alcance) - deseo_y_sexualidad (alcance + diferenciación) - patrones_clinicos (autoridad) - servicios_y_proceso (conversión)  FORMATO DE SALIDA: Responde ÚNICAMENTE con un JSON válido, sin texto antes ni después, con esta estructura exacta:  {   \"semana\": 1,   \"hipotesis_principal\": \"texto\",   \"mix\": {\"alcance\": 11, \"autoridad\": 2, \"conversion\": 1},   \"piezas\": [     {       \"numero\": 1,       \"titulo\": \"texto\",       \"formato\": \"reel|carrusel|stories\",       \"pilar\": \"nombre_del_pilar\",       \"funcion\": \"alcance|autoridad|conversion\",       \"hipotesis\": \"qué se espera lograr con esta pieza\"     }   ] }",
+          "maxTokens": 4000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "aab52f9f-5dce-4297-be40-41da1da353df",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "kzMxFzf153BS5H7c",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=309862268#gid=309862268",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1814157305,
+          "mode": "list",
+          "cachedResultName": "Plan Editorial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1814157305"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semana": "={{ $json.Semana }}",
+            "Titulo": "={{ $json.Titulo }}",
+            "Formato": "={{ $json.Formato }}",
+            "Pilar": "={{ $json.Pilar }}",
+            "Funcion ": "={{ $json.Funcion }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Semana",
+              "displayName": "Semana",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Titulo",
+              "displayName": "Titulo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Formato",
+              "displayName": "Formato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pilar",
+              "displayName": "Pilar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Funcion ",
+              "displayName": "Funcion ",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        864,
+        0
+      ],
+      "id": "fa85ebe1-af09-478e-b1de-316d081dec74",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.content[0].text;\nconst cleaned = raw.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\nconst plan = JSON.parse(cleaned);\n\nreturn plan.piezas.map(pieza => ({\n  json: {\n    Semana: plan.semana,\n    Titulo: pieza.titulo,\n    Formato: pieza.formato,\n    Pilar: pieza.pilar,\n    Funcion: pieza.funcion\n  }\n}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        144
+      ],
+      "id": "c508558c-a2e3-4225-bf58-483d23db70f3",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6e6a7cf3-e3ed-43c6-a570-e67f5e253330",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c153ee72bcf142a316fe9447104fa533601176816011db9fc18b2807be3ec3b6"
+  },
+  "id": "gq3v9Jmjmr9asCY0",
+  "tags": []
+}
