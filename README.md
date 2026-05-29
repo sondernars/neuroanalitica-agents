@@ -144,4 +144,4 @@ Claude's instruction-following precision and its ability to maintain consistent 
 
 ## Author
 
-Built by Sebastián Arismendi, Psychologyst & Msc in Neuroscience — AI systems, automation architecture, and clinical content strategy for NeuroAnalítica.
+Built by Sebastián Arismendi, Psychologist & MSc in Neuroscience — AI systems, automation architecture, and clinical content strategy for NeuroAnalítica.
