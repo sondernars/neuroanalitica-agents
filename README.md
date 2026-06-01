@@ -57,9 +57,9 @@ Google Sheets (memory layer)
 | 1 | Strategist | Weekly metrics | Editorial plan (14 pieces, JSON) | ✅ Built |
 | 2 | Scriptwriter | Editorial plan | Full script per piece (hook + body + CTA) | ✅ Built |
 | 3 | Hooks | Editorial plan | 3 hook variations per piece (A/B/C) | ✅ Built |
-| 4 | Repurposing | Master reel | Carousel, stories, ad copy | 🔜 Planned |
-| 5 | Publisher | Approved assets | Scheduled calendar | 🔜 Planned |
-| 6 | Community | DMs + comments | Classified responses, escalations | 🔜 Planned |
+| 4 | Repurposing | Master reel | Carousel, stories, ad copy | ✅ Built |
+| 5 | Publisher | Approved assets | Scheduled calendar | ✅ Built |
+| 6 | Community | DMs + comments | Classified responses, escalations | ✅ Built |
 | 7 | Qualifier | Incoming messages | Lead score, intent, priority | 🔜 Planned |
 | 8 | CRM Sync | Qualified leads | CRM record + follow-up tasks | 🔜 Planned |
 | 9 | Analyst | Metrics + leads + closes | Weekly report + recommendations | 🔜 Planned |
