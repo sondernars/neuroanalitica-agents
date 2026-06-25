@@ -1,0 +1,307 @@
+{
+  "name": "NeuroAnalitica- Agente CRM Sync",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "7a49910b-5d84-4a53-aa73-5b0a8281223b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1614200279#gid=1614200279",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 269183893,
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=269183893"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        -176
+      ],
+      "id": "399d7bbd-4b58-45b6-9f20-9422d9677142",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1614200279#gid=1614200279",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1614200279,
+          "mode": "list",
+          "cachedResultName": "Scoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1614200279"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        176
+      ],
+      "id": "4a1e2c41-7c93-48b2-930e-4572f9a2a719",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "132a2fc5-905b-4482-90d9-a2d7f7d3fea6",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nitems.forEach(item => {\n  const lead = item.json;\n  \n  // Determina la próxima acción según prioridad\n  let proximaAccion = \"Seguimiento estándar en 48h\";\n  if (lead.Prioridad === \"urgente_clinico\") {\n    proximaAccion = \"Contactar HOY — revisión clínica inmediata\";\n  } else if (lead.Prioridad === \"alta\") {\n    proximaAccion = \"Contactar en 24h\";\n  } else if (lead.Prioridad === \"baja\") {\n    proximaAccion = \"Seguimiento en 5 días o descartar\";\n  }\n\n  results.push({\n    json: {\n      Nombre: lead.Nombre,\n      Mensaje: lead.Mensaje,\n      Categoria: lead.Categoria,\n      Score_Total: lead.Score_Total,\n      Prioridad: lead.Prioridad,\n      Fecha_Registro: new Date().toISOString().split('T')[0],\n      Proxima_Accion: proximaAccion,\n      Estado: \"nuevo\"\n    }\n  });\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        0
+      ],
+      "id": "0e9ec449-b67e-4e7d-9d93-a9791eba35b2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1538439927#gid=1538439927",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1538439927,
+          "mode": "list",
+          "cachedResultName": "CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1538439927"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nombre": "={{ $json.Nombre }}",
+            "Mensaje": "={{ $json.Mensaje }}",
+            "Categoria": "={{ $json.Categoria }}",
+            "Score_Total": "={{ $json.Score_Total }}",
+            "Prioridad": "={{ $json.Prioridad }}",
+            "Fecha_Registro": "={{ $json.Fecha_Registro }}",
+            "Proxima_Accion": "={{ $json.Proxima_Accion }}",
+            "Estado": "={{ $json.Estado }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Categoria",
+              "displayName": "Categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Score_Total",
+              "displayName": "Score_Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prioridad",
+              "displayName": "Prioridad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha_Registro",
+              "displayName": "Fecha_Registro",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Proxima_Accion",
+              "displayName": "Proxima_Accion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "f66e8b50-5b06-46b0-a7fe-821537d907b3",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "9c4269b2-96dc-4f86-ae60-146a4a8daba1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c153ee72bcf142a316fe9447104fa533601176816011db9fc18b2807be3ec3b6"
+  },
+  "nodeGroups": [],
+  "id": "Zm0QWdN9pWYtzqMq",
+  "tags": []
+}

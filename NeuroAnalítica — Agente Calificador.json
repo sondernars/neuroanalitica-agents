@@ -1,0 +1,267 @@
+{
+  "name": "NeuroAnalítica — Agente Calificador",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "50309d5e-653a-4a9d-abdc-d11a197fbc87",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Califica este lead de NeuroAnalítica:\n\nNombre: {{ $json.Nombre }}\nMensaje: {{ $json.Mensaje }}\nCategoría: {{ $json.Categoria }}\nTemperatura: {{ $json.Temperatura }}\n\nSigue tus instrucciones y devuelve el JSON."
+            }
+          ]
+        },
+        "options": {
+          "system": "Eres el agente calificador de NeuroAnalítica, un centro clínico que integra neuropsicología y psicoanálisis. Tu única función es asignar un score de calidad a cada lead basándote en cuatro variables.  VARIABLES DE SCORING (cada una vale 25 puntos, total 100):  1. INTENCIÓN (0-25): ¿Qué tan clara es la intención de agendar o consultar?    - 25: pide agendar explícitamente o pregunta por precios/disponibilidad    - 15: pregunta sobre el proceso o servicios sin pedir agendar    - 5: solo comenta o pregunta algo general  2. URGENCIA (0-25): ¿Qué tan urgente suena la necesidad?    - 25: menciona síntomas activos, tiempo límite, o necesidad inmediata    - 15: menciona una preocupación sin urgencia explícita    - 5: pregunta exploratoria sin indicios de urgencia  3. FIT CON SERVICIO (0-25): ¿Qué tan bien calza con lo que ofrece NeuroAnalítica?    - 25: el tema coincide directamente con evaluación neuropsicológica o psicoterapia    - 15: tema relacionado pero ambiguo    - 5: tema fuera del scope clínico de NeuroAnalítica  4. FACILIDAD DE CONTACTO (0-25): ¿Qué tan fácil será cerrar el contacto?    - 25: dejó datos de contacto, nombre completo o disponibilidad horaria    - 15: solo nombre, sin más datos    - 5: mensaje anónimo o sin datos de contacto  REGLAS FIJAS: - Nunca asignes diagnóstico clínico en el razonamiento. - El score es orientativo para priorizar seguimiento, no una evaluación clínica. - Si detectas riesgo clínico real (crisis, autolesión), el score es irrelevante — marca prioridad como \"urgente_clinico\" sin importar el cálculo.  FORMATO DE SALIDA: Responde ÚNICAMENTE con un JSON válido, sin texto antes ni después:  {   \"score_total\": 0-100,   \"intencion\": 0-25,   \"urgencia\": 0-25,   \"fit_servicio\": 0-25,   \"facilidad_contacto\": 0-25,   \"prioridad\": \"alta|media|baja|urgente_clinico\",   \"razonamiento\": \"explicación breve del score en una línea\" }"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "6f0aa679-785d-4631-813e-645829ad8475",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "kzMxFzf153BS5H7c",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  try {\n    const raw = item.json.content[0].text;\n    const cleaned = raw.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\n    const calificacion = JSON.parse(cleaned);\n    \n    results.push({\n      json: {\n        Score_Total: calificacion.score_total,\n        Intencion: calificacion.intencion,\n        Urgencia: calificacion.urgencia,\n        Fit_Servicio: calificacion.fit_servicio,\n        Facilidad_Contacto: calificacion.facilidad_contacto,\n        Prioridad: calificacion.prioridad,\n        Razonamiento: calificacion.razonamiento\n      }\n    });\n  } catch(e) {\n    results.push({\n      json: {\n        Score_Total: 0,\n        Intencion: 0,\n        Urgencia: 0,\n        Fit_Servicio: 0,\n        Facilidad_Contacto: 0,\n        Prioridad: \"error\",\n        Razonamiento: e.message\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "5db9cb99-f8e1-495d-90fd-1f1b2c9edd27",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1614200279#gid=1614200279",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1614200279,
+          "mode": "list",
+          "cachedResultName": "Scoring",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1614200279"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Score_Total": "={{ $json.Score_Total }}",
+            "Intencion": "={{ $json.Intencion }}",
+            "Urgencia": "={{ $json.Urgencia }}",
+            "Fit_Servicio": "={{ $json.Fit_Servicio }}",
+            "Facilidad_Contacto": "={{ $json.Facilidad_Contacto }}",
+            "Prioridad": "={{ $json.Prioridad }}",
+            "Razonamiento": "={{ $json.Razonamiento }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Score_Total",
+              "displayName": "Score_Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Intencion",
+              "displayName": "Intencion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Urgencia",
+              "displayName": "Urgencia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fit_Servicio",
+              "displayName": "Fit_Servicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Facilidad_Contacto",
+              "displayName": "Facilidad_Contacto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prioridad",
+              "displayName": "Prioridad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Razonamiento",
+              "displayName": "Razonamiento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        0
+      ],
+      "id": "1995d81f-4579-4cf0-8614-3c49d2a54c3e",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1614200279#gid=1614200279",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 269183893,
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=269183893"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "8395d960-082b-4d7d-bf20-e42c9206e8b2",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "dff7f7e7-7fe1-4456-b897-e02f66e81de0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c153ee72bcf142a316fe9447104fa533601176816011db9fc18b2807be3ec3b6"
+  },
+  "nodeGroups": [],
+  "id": "iAzM7dQtTzupso6i",
+  "tags": []
+}

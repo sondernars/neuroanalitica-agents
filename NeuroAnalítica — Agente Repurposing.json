@@ -1,0 +1,237 @@
+{
+  "name": "NeuroAnalítica — Agente Repurposing",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "1d6f0897-1544-4fa9-968a-bd08c815fedc",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=309862268#gid=309862268",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1244045211,
+          "mode": "list",
+          "cachedResultName": "Guiones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1244045211"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "b3cff8fb-9605-494c-a7a7-9a39bfe447ce",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Convierte este guion de NeuroAnalítica en tres formatos adicionales:\n\nTítulo: {{ $json.Titulo }}\nHook: {{ $json.Hook }}\nDesarrollo: {{ $json.Desarrollo }}\nCTA: {{ $json.CTA }}\n\nSigue tus instrucciones y devuelve el JSON."
+            }
+          ]
+        },
+        "options": {
+          "system": "Eres el agente de repurposing de NeuroAnalítica, un centro clínico que integra neuropsicología y psicoanálisis. Tu única función es tomar un guion maestro y convertirlo en tres formatos adicionales de contenido para Instagram.  REGLAS FIJAS: - Mantén el tono clínico e incisivo de NeuroAnalítica en todos los formatos. - Nunca ofrezcas diagnósticos ni promesas de resultado. - Nunca uses lenguaje de autoayuda genérico. - Cada formato tiene su propia lógica — no copies y pegues el guion original.  FORMATOS A PRODUCIR:  CARRUSEL (si el original es reel): - 5 slides máximo - Slide 1: el hook como titular visual - Slides 2-4: una idea por slide, corta y directa - Slide 5: CTA  STORIES (siempre): - 3 slides - Slide 1: pregunta o afirmación que genera respuesta - Slide 2: insight clínico en una frase - Slide 3: CTA a DM o a ver el post completo  COPY DE ANUNCIO (siempre): - Máximo 3 líneas - Primera línea: hook que para el scroll - Segunda línea: promesa clínica concreta - Tercera línea: CTA directo  FORMATO DE SALIDA: Responde ÚNICAMENTE con un JSON válido, sin texto antes ni después:  {   \"titulo\": \"texto\",   \"carrusel\": \"contenido completo del carrusel slide por slide\",   \"stories\": \"contenido de los 3 slides\",   \"copy_anuncio\": \"las 3 líneas del anuncio\" }",
+          "maxTokens": 4000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "c4762dfc-e27a-4e4e-bb9b-952985e121ae",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "kzMxFzf153BS5H7c",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  try {\n    const raw = item.json.content[0].text;\n    const cleaned = raw.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\n    const repurposed = JSON.parse(cleaned);\n    \n    results.push({\n      json: {\n        Titulo: repurposed.titulo,\n        Carrusel: repurposed.carrusel,\n        Stories: repurposed.stories,\n        Copy_Anuncio: repurposed.copy_anuncio\n      }\n    });\n  } catch(e) {\n    results.push({\n      json: {\n        Titulo: \"ERROR\",\n        Carrusel: e.message,\n        Stories: \"\",\n        Copy_Anuncio: \"\"\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "8eb3df19-bca2-452e-af72-8c3015670b2d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=153212594#gid=153212594",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 153212594,
+          "mode": "list",
+          "cachedResultName": "Repurposing",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=153212594"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Titulo": "={{ $json.Titulo }}",
+            "Carrusel": "={{ $json.Carrusel }}",
+            "Stories": "={{ $json.Stories }}",
+            "Copy_Anuncio": "={{ $json.Copy_Anuncio }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Titulo",
+              "displayName": "Titulo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Carrusel",
+              "displayName": "Carrusel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Stories",
+              "displayName": "Stories",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Copy_Anuncio",
+              "displayName": "Copy_Anuncio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        976,
+        0
+      ],
+      "id": "a3eb7bd7-1475-450a-b577-b6f041b163be",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "09455af7-5720-4fd1-bb5e-c293de12fc5e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c153ee72bcf142a316fe9447104fa533601176816011db9fc18b2807be3ec3b6"
+  },
+  "nodeGroups": [],
+  "id": "XzY3bVQqXpujFYRo",
+  "tags": []
+}

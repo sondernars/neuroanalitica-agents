@@ -1,0 +1,375 @@
+{
+  "name": "NeuroAnalítica — Agente Community",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "643ccbff-a403-47ac-81c2-525f6ccdf981",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "307cf748-1f00-4cfe-8c4c-470f7cea3e40",
+              "name": "nombre",
+              "value": "María",
+              "type": "string"
+            },
+            {
+              "id": "4a3ea330-d53a-4f93-9f26-c77b87edbc51",
+              "name": "mensaje",
+              "value": "Hola, quisiera saber más sobre el proceso de evaluación neuropsicológica, tengo problemas de concentración hace meses",
+              "type": "string"
+            },
+            {
+              "id": "ea43a829-2add-4dba-99cb-4c04814a7412",
+              "name": "canal",
+              "value": "DM",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "d7171c57-363b-4d93-97e9-d2cb8d8a679f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Clasifica y responde este mensaje de Instagram:\n\nNombre: {{ $json.nombre }}\nCanal: {{ $json.canal }}\nMensaje: {{ $json.mensaje }}"
+            }
+          ]
+        },
+        "options": {
+          "system": "Eres el agente community de NeuroAnalítica, un centro clínico que integra neuropsicología y psicoanálisis. Tu función es clasificar mensajes entrantes y generar la respuesta apropiada.  CATEGORÍAS DE CLASIFICACIÓN: - consulta_clinica: quiere agendar, preguntar por servicios, evaluación o psicoterapia - duda_general: pregunta sobre contenido publicado, conceptos clínicos o información general - colaboracion: marca, prensa, alianza comercial - spam: publicidad, bot, contenido irrelevante - riesgo: menciona crisis, ideación suicida, autolesión, abuso, violencia o urgencia clínica  REGLAS FIJAS: - Nunca ofrezcas diagnósticos ni intervenciones clínicas por DM. - Nunca respondas como si fueras un terapeuta. - Si la categoría es riesgo, NO generes respuesta — solo clasifica y escala. - El tono es humano, cálido y profesional. Nunca robótico. - Las respuestas son cortas — máximo 3 líneas.  RESPUESTAS POR CATEGORÍA: - consulta_clinica: agradece, valida brevemente y deriva a agendar - duda_general: responde la pregunta con una línea clínica y invita a seguir explorando - colaboracion: agradece y pide que escriban a contacto formal - spam: no generes respuesta  FORMATO DE SALIDA: Responde ÚNICAMENTE con un JSON válido, sin texto antes ni después:  {   \"categoria\": \"consulta_clinica|duda_general|colaboracion|spam|riesgo\",   \"temperatura\": \"alta|media|baja\",   \"escalar_a_humano\": true|false,   \"respuesta\": \"texto de la respuesta o null si es riesgo/spam\" }",
+          "maxTokens": 2000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        416,
+        0
+      ],
+      "id": "55f4e1da-3161-4d8c-b28b-f77e1400f2b1",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "kzMxFzf153BS5H7c",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\nfor (const item of items) {\n  try {\n    const raw = item.json.content[0].text;\n    const cleaned = raw.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\n    const clasificacion = JSON.parse(cleaned);\n    \n    results.push({\n      json: {\n        categoria: clasificacion.categoria,\n        temperatura: clasificacion.temperatura,\n        escalar_a_humano: clasificacion.escalar_a_humano,\n        respuesta: clasificacion.respuesta\n      }\n    });\n  } catch(e) {\n    results.push({\n      json: {\n        categoria: \"error\",\n        temperatura: \"baja\",\n        escalar_a_humano: true,\n        respuesta: null\n      }\n    });\n  }\n}\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "6d7c2d65-50dc-4c19-bf37-f4917761e86e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b4ea6e54-2906-4f6f-b039-26d23863d426",
+              "leftValue": "={{ $json.escalar_a_humano }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        976,
+        0
+      ],
+      "id": "2f6ac93a-8ee0-45af-a3fd-0eb60baa5d1b",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=269183893#gid=269183893",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 269183893,
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=269183893"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nombre": "={{ $('Edit Fields').item.json.nombre }}",
+            "Mensaje": "={{ $('Edit Fields').item.json.mensaje }}",
+            "Categoria": "={{ $json.categoria }}",
+            "Temperatura": "={{ $json.temperatura }}",
+            "Estado": "pendiente_revision_humana"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Categoria",
+              "displayName": "Categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Temperatura",
+              "displayName": "Temperatura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1184,
+        -96
+      ],
+      "id": "4b2cbf80-6497-447f-94aa-99f7cdf97e86",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=931072854#gid=931072854",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 931072854,
+          "mode": "list",
+          "cachedResultName": "Respuestas_Automaticas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=931072854"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Mensaje": "={{ $('Edit Fields').item.json.mensaje }}",
+            "Categoria": "={{ $json.categoria }}",
+            "Respuesta": "={{ $json.respuesta }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Categoria",
+              "displayName": "Categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Respuesta",
+              "displayName": "Respuesta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1184,
+        96
+      ],
+      "id": "15cdc897-cf22-414a-96b5-12776f347dc3",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "d33cdc75-ef37-4d7a-8844-10d9e88ecd54",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c153ee72bcf142a316fe9447104fa533601176816011db9fc18b2807be3ec3b6"
+  },
+  "nodeGroups": [],
+  "id": "j97EEfp79YWMTmou",
+  "tags": []
+}

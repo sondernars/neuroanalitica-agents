@@ -1,0 +1,222 @@
+{
+  "name": "NeuroAnalítica — Agente Publicador",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6ab9e72d-90f5-4313-b605-f83614b17001",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=153212594#gid=153212594",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1814157305,
+          "mode": "list",
+          "cachedResultName": "Plan Editorial",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1814157305"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "970598bc-eb2f-4c10-8de9-4a2223a0e8c5",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst results = [];\n\n// Fecha base: próximo lunes\nconst today = new Date();\nconst daysUntilMonday = (1 + 7 - today.getDay()) % 7 || 7;\nconst monday = new Date(today);\nmonday.setDate(today.getDate() + daysUntilMonday);\n\n// Horarios óptimos para Instagram\nconst horarios = [\n  \"09:00\", \"12:00\", \"18:00\", \"20:00\",\n  \"09:00\", \"12:00\", \"18:00\", \"20:00\",\n  \"09:00\", \"12:00\", \"18:00\", \"20:00\",\n  \"09:00\", \"12:00\"\n];\n\n// Días de la semana (lunes a domingo)\nconst dias = [0, 0, 0, 1, 1, 1, 2, 2, 3, 3, 4, 4, 5, 6];\n\nitems.forEach((item, index) => {\n  const fechaPublicacion = new Date(monday);\n  fechaPublicacion.setDate(monday.getDate() + dias[index]);\n  const fecha = fechaPublicacion.toISOString().split('T')[0];\n\n  results.push({\n    json: {\n      Semana: item.json.Semana,\n      Titulo: item.json.Titulo,\n      Formato: item.json.Formato,\n      Pilar: item.json.Pilar,\n      Fecha: fecha,\n      Hora: horarios[index],\n      Estado: \"programado\"\n    }\n  });\n});\n\nreturn results;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "5fb5415c-4761-48bd-84d5-07d447a355ff",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1676467328#gid=1676467328",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1676467328,
+          "mode": "list",
+          "cachedResultName": "Calendario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1676467328"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semana": "={{ $json.Semana }}",
+            "Titulo": "={{ $json.Titulo }}",
+            "Formato": "={{ $json.Formato }}",
+            "Pilar": "={{ $json.Pilar }}",
+            "Fecha": "={{ $json.Fecha }}",
+            "Hora": "={{ $json.Hora }}",
+            "Estado": "={{ $json.Estado }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Semana",
+              "displayName": "Semana",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Titulo",
+              "displayName": "Titulo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Formato",
+              "displayName": "Formato",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pilar",
+              "displayName": "Pilar",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Hora",
+              "displayName": "Hora",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        624,
+        0
+      ],
+      "id": "1d4b5bd4-37e6-4e93-87ee-309c755fd6ea",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "38d78775-29b4-4d4c-8c45-1ece62c87c9e",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c153ee72bcf142a316fe9447104fa533601176816011db9fc18b2807be3ec3b6"
+  },
+  "nodeGroups": [],
+  "id": "syx7x1KLRCg0PX8E",
+  "tags": []
+}

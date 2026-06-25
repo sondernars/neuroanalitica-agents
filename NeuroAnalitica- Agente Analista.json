@@ -1,0 +1,378 @@
+{
+  "name": "NeuroAnalitica- Agente Analista",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4df71c23-faf7-4b3e-9b89-4a3ba2d06a6d",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1538439927#gid=1538439927",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 309862268,
+          "mode": "list",
+          "cachedResultName": "Métricas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=309862268"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        -128
+      ],
+      "id": "e098ea05-fe20-4afb-a95c-09e0a67fb970",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1538439927#gid=1538439927",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1538439927,
+          "mode": "list",
+          "cachedResultName": "CRM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1538439927"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        112
+      ],
+      "id": "96e58eb1-e843-4446-aaab-b0fc6c43e2cb",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const metricas = $('Get row(s) in sheet').all().map(item => item.json);\nconst leads = $('Get row(s) in sheet1').all().map(item => item.json);\n\nreturn [{\n  json: {\n    metricas_resumen: JSON.stringify(metricas),\n    leads_resumen: JSON.stringify(leads),\n    total_piezas: metricas.length,\n    total_leads: leads.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        -304
+      ],
+      "id": "f9dd0bb7-4795-4c03-a424-3c3d2521ff0d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-sonnet-4-6",
+          "mode": "list",
+          "cachedResultName": "claude-sonnet-4-6"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Analiza el rendimiento semanal de NeuroAnalítica:\n\nTotal de piezas publicadas: {{ $json.total_piezas }}\nMétricas: {{ $json.metricas_resumen }}\n\nTotal de leads generados: {{ $json.total_leads }}\nLeads: {{ $json.leads_resumen }}\n\nSigue tus instrucciones y devuelve el JSON."
+            }
+          ]
+        },
+        "options": {
+          "system": "Eres el agente analista de NeuroAnalítica, un centro clínico que integra neuropsicología y psicoanálisis. Tu única función es analizar el rendimiento semanal y producir recomendaciones para el agente estratega.  REGLAS FIJAS: - Sé directo y específico. Nunca generes conclusiones vagas tipo \"todo va bien\". - Identifica el top 1 pilar temático que mejor funcionó y el que peor funcionó. - Identifica si hubo correlación entre algún tipo de contenido y leads de alta prioridad. - Si no hay suficientes datos (menos de 3 piezas o 1 lead), dilo explícitamente y recomienda esperar a la próxima semana antes de sacar conclusiones. - Nunca inventes datos que no estén en la información proporcionada.  FORMATO DE SALIDA: Responde ÚNICAMENTE con un JSON válido, sin texto antes ni después:  {   \"semana_analizada\": \"texto\",   \"pilar_top\": \"texto o null si no hay datos suficientes\",   \"pilar_bajo\": \"texto o null\",   \"correlacion_leads\": \"texto describiendo si algún contenido generó leads de alta prioridad\",   \"recomendacion_proxima_semana\": \"texto específico y accionable para el estratega\",   \"confianza_analisis\": \"alta|media|baja — basado en cantidad de datos disponibles\" }"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        1152,
+        16
+      ],
+      "id": "fcea51fd-981b-4b32-bbaa-170775b4ec1a",
+      "name": "Message a model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "kzMxFzf153BS5H7c",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.content[0].text;\nconst cleaned = raw.replace(/```json\\n?/g, '').replace(/```/g, '').trim();\nconst reporte = JSON.parse(cleaned);\n\nreturn [{\n  json: {\n    Semana: reporte.semana_analizada,\n    Pilar_Top: reporte.pilar_top,\n    Pilar_Bajo: reporte.pilar_bajo,\n    Correlacion_Leads: reporte.correlacion_leads,\n    Recomendacion: reporte.recomendacion_proxima_semana,\n    Confianza: reporte.confianza_analisis\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        -304
+      ],
+      "id": "9a5a2b52-5756-47ec-bb2a-76e08bc449cd",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        496,
+        0
+      ],
+      "id": "b73b32b4-fa9c-4dad-bef3-05b4f4062a81",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst metricas = items.map(i => ({\n  Pieza: i.json.Pieza,\n  Views: i.json.Views,\n  Guardados: i.json.Guardados,\n  DMs: i.json.DMs\n}));\n\nconst leads = items.map(i => ({\n  Nombre: i.json.Nombre,\n  Categoria: i.json.Categoria,\n  Score_Total: i.json.Score_Total,\n  Prioridad: i.json.Prioridad\n}));\n\nreturn [{\n  json: {\n    metricas_resumen: JSON.stringify(metricas),\n    leads_resumen: JSON.stringify(leads),\n    total_piezas: metricas.length,\n    total_leads: leads.length\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        0
+      ],
+      "id": "4d870b69-308e-443a-91c7-601b057a3782",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit?gid=1285647930#gid=1285647930",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1285647930,
+          "mode": "list",
+          "cachedResultName": "Reportes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1e3yAjU-pQHBTS8hmUmx2Z5E9M_zhy3zqdkm-DSW7sgI/edit#gid=1285647930"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Semana": "={{ $json.Semana }}",
+            "Pilar_Top": "={{ $json.Pilar_Top }}",
+            "Pilar_Bajo": "={{ $json.Pilar_Bajo }}",
+            "Correlacion_Leads": "={{ $json.Correlacion_Leads }}",
+            "Recomendacion": "={{ $json.Recomendacion }}",
+            "Confianza": "={{ $json.Confianza }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Semana",
+              "displayName": "Semana",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pilar_Top",
+              "displayName": "Pilar_Top",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Pilar_Bajo",
+              "displayName": "Pilar_Bajo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Correlacion_Leads",
+              "displayName": "Correlacion_Leads",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recomendacion",
+              "displayName": "Recomendacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Confianza",
+              "displayName": "Confianza",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1648,
+        16
+      ],
+      "id": "26426ffd-2262-4c89-a2d6-d71aff3ec46f",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "mjLnCo8BY0fCvOIu",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4176ed8d-097e-4e7c-8f3f-a354a92c87b3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c153ee72bcf142a316fe9447104fa533601176816011db9fc18b2807be3ec3b6"
+  },
+  "nodeGroups": [],
+  "id": "hIdFq59Cce6GSMsB",
+  "tags": []
+}
