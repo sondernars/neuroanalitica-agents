@@ -1,16 +1,14 @@
-# neuroanalitica-agents
-Multi-agent system for automated clinical content production on Instagram, built with n8n and Claude API
 # NeuroAnalítica — Multi-Agent Content System
 
-An agentic system for automated clinical content production on Instagram, built with n8n and the Claude API. Designed for **NeuroAnalítica**, an interdisciplinary clinical center integrating neuropsychology and psychoanalysis.
+An agentic system for automated clinical content production, lead qualification, and learning loops on Instagram, built with n8n and the Claude API. Designed for **NeuroAnalítica**, an interdisciplinary clinical center integrating neuropsychology and psychoanalysis.
 
 ---
 
 ## Overview
 
-This system replaces manual weekly content planning with a pipeline of specialized AI agents. Each Monday at 9am, the system automatically produces a full editorial plan, complete scripts, and hook variations for 14 Instagram pieces — without human intervention at the production stage.
+This system replaces manual weekly content planning and lead triage with a pipeline of 9 specialized AI agents. Each agent has a fixed role, defined inputs, structured JSON outputs, and clear escalation rules to human review when clinical or ethical judgment is required.
 
-The architecture separates strategy, writing, and optimization into discrete agents. Each agent has a fixed role, defined inputs, structured JSON outputs, and clear escalation rules to human review when clinical or ethical judgment is required.
+**Status: all 9 agents built and validated in a lab/sandbox environment.** Each agent runs correctly end-to-end with test data in n8n and Google Sheets. Production deployment — real Instagram DMs, real publishing, real lead volume — requires the integration step described in [Production Readiness](#production-readiness) below.
 
 ---
 
@@ -46,7 +44,7 @@ Google Sheets (memory layer)
 
 **Orchestration layer:** n8n handles all state, chaining agent outputs as inputs to the next node. Claude has no memory between calls — the workflow carries the state.
 
-**Memory layer:** Google Sheets stores metrics, ideas bank, editorial plan, scripts, and hooks. Every agent reads from and writes to it.
+**Memory layer:** Google Sheets stores metrics, ideas bank, editorial plan, scripts, hooks, repurposed assets, calendar, leads, scoring, CRM records, and weekly reports. Every agent reads from and writes to it.
 
 ---
 
@@ -54,15 +52,32 @@ Google Sheets (memory layer)
 
 | # | Agent | Input | Output | Status |
 |---|-------|-------|--------|--------|
-| 1 | Strategist | Weekly metrics | Editorial plan (14 pieces, JSON) | ✅ Built |
-| 2 | Scriptwriter | Editorial plan | Full script per piece (hook + body + CTA) | ✅ Built |
-| 3 | Hooks | Editorial plan | 3 hook variations per piece (A/B/C) | ✅ Built |
-| 4 | Repurposing | Master reel | Carousel, stories, ad copy | ✅ Built |
-| 5 | Publisher | Approved assets | Scheduled calendar | ✅ Built |
-| 6 | Community | DMs + comments | Classified responses, escalations | ✅ Built |
-| 7 | Qualifier | Incoming messages | Lead score, intent, priority | 🔜 Planned |
-| 8 | CRM Sync | Qualified leads | CRM record + follow-up tasks | 🔜 Planned |
-| 9 | Analyst | Metrics + leads + closes | Weekly report + recommendations | 🔜 Planned |
+| 1 | Strategist | Weekly metrics | Editorial plan (14 pieces, JSON) | ✅ Built & tested |
+| 2 | Hooks | Editorial plan | 3 hook variations per piece (A/B/C) | ✅ Built & tested |
+| 3 | Scriptwriter | Editorial plan | Full script per piece (hook + body + CTA) | ✅ Built & tested |
+| 4 | Repurposing | Master script | Carousel, stories, ad copy | ✅ Built & tested |
+| 5 | Publisher | Editorial plan | Scheduled calendar (date + time per piece) | ✅ Built & tested — logic only, not yet wired to Meta API |
+| 6 | Community | Incoming DM/comment | Classification + auto-response or human escalation | ✅ Built & tested — logic only, not yet wired to Instagram |
+| 7 | Qualifier | Escalated leads | Lead score (0–100), priority | ✅ Built & tested |
+| 8 | CRM Sync | Lead + score | Consolidated CRM record with next action | ✅ Built & tested |
+| 9 | Analyst | Metrics + CRM records | Weekly report + recommendation to Strategist | ✅ Built & tested |
+
+All 9 agents are complete as n8n workflows with working system prompts, JSON-structured outputs, and error handling. They have been validated with synthetic and semi-real data (one real Instagram post, simulated leads and metrics).
+
+---
+
+## Production Readiness
+
+This section is intentionally explicit: **what works today vs. what's needed for real-world deployment.**
+
+| Component | Lab status | Production requirement |
+|---|---|---|
+| Content generation (Strategist, Hooks, Scriptwriter, Repurposing) | ✅ Fully functional | None — ready to use as-is |
+| Publisher | ✅ Scheduling logic works | Needs Meta Graph API or Buffer integration to actually publish |
+| Community | ✅ Classification + escalation logic works | Needs Meta Business API (Instagram DMs/comments webhook) — requires business verification, takes several days |
+| Qualifier, CRM Sync, Analyst | ✅ Fully functional | None — ready to use once Community is feeding it real leads |
+
+The decision to build the full logic before connecting live APIs was deliberate: it allows validating the entire decision tree (classification, scoring, escalation rules) without risk to real patients or real conversations, and makes the integration step a matter of swapping one node rather than redesigning the system.
 
 ---
 
@@ -105,6 +120,7 @@ This system operates in a mental health context. Hard limits apply across all ag
 - Immediate escalation to human clinician for: suicidal ideation, crisis, abuse, formal evaluation requests, or any ethically ambiguous message
 - No grey-area automations (no scraping, no follow/unfollow bots)
 - Content clearly separated from clinical intervention
+- The Community agent never auto-responds to anything classified as `riesgo` (risk) — it only logs and escalates
 
 ---
 
@@ -115,14 +131,20 @@ This system operates in a mental health context. Hard limits apply across all ag
 | Orchestration | n8n cloud |
 | LLM | Claude Sonnet (Anthropic API) |
 | Memory | Google Sheets |
-| Scheduling | n8n Schedule Trigger |
-| Distribution | Buffer / Meta API (planned) |
+| Scheduling | n8n Schedule Trigger / Manual Trigger |
+| Distribution | Buffer / Meta API (pending integration) |
 
 ---
 
 ## Cost
 
-Running the full 9-agent system weekly costs approximately **$2–6 USD/month** using Claude Sonnet via the Anthropic API, depending on DM volume.
+Running the full 9-agent system weekly costs approximately **$2–6 USD/month** using Claude Sonnet via the Anthropic API at current testing volume. Real production volume (active DM traffic) would add a modest amount depending on message count — still well under $20/month at small-clinic scale.
+
+---
+
+## Market Reference
+
+For context on what a system of this scope would cost as a commissioned project: comparable n8n + LLM agentic systems for clinics and SMEs in the Spanish-speaking market are commonly quoted between **€1,500–4,000** (or ~2,000,000–4,500,000 CLP) as a one-time implementation project, with monthly maintenance/operation in the €50–400 range — independent of the underlying API costs, which remain low (see above).
 
 ---
 
@@ -137,6 +159,9 @@ Sheets provides a human-readable, easily editable shared state that non-technica
 **Why escalate to human for clinical cases?**
 Automation in mental health without governance is dangerous. The system is designed to accelerate content production and lead qualification — not to replace clinical judgment. Any message involving risk, formal evaluation, or ethical ambiguity bypasses automation entirely.
 
+**Why build all 9 agents in a lab environment before connecting live APIs?**
+Connecting to Meta's Instagram API requires business verification (multi-day process) and carries real risk if the classification/escalation logic has bugs — a missed crisis escalation in production is unacceptable. Validating the full decision tree with synthetic data first, then swapping in live data sources, isolates integration risk from logic risk.
+
 **Why Claude over other LLMs?**
 Claude's instruction-following precision and its ability to maintain consistent tone, format, and clinical constraints across structured JSON outputs makes it well-suited for this type of agentic pipeline.
 
@@ -144,4 +169,4 @@ Claude's instruction-following precision and its ability to maintain consistent 
 
 ## Author
 
-Built by Sebastián Arismendi, Psychologist & MSc in Neuroscience — AI systems, automation architecture, and clinical content strategy for NeuroAnalítica.
+Built by Sebastián Arismendi — Psychologist & MSc in Neuroscience (in progress), transitioning into AI Engineering. This project combines clinical domain expertise with applied LLM orchestration and agentic systems design.
