@@ -1,0 +1,11 @@
+El agente Publicador no utiliza la API de Claude. Su lógica de asignación de fecha y hora de publicación está implementada directamente en JavaScript dentro de un nodo Code de n8n — no requiere inteligencia artificial porque su tarea es puramente mecánica: distribuir 14 piezas en una semana asignando horarios óptimos predefinidos.
+
+Ver el código completo en el archivo del workflow exportado: NeuroAnalítica — Agente Publicador.json
+
+Lógica resumida:
+- Calcula el próximo lunes a partir de la fecha actual.
+- Asigna horarios óptimos predefinidos (9:00, 12:00, 18:00, 20:00) distribuidos a lo largo de la semana.
+- Asigna cada una de las 14 piezas del Plan Editorial a una fecha y hora específica.
+- Marca el estado de cada pieza como "programado".
+
+Este enfoque fue deliberado: usar IA para una tarea determinística habría sido ineficiente e innecesariamente costoso. La IA se reserva para tareas que requieren juicio o generación de contenido (Estratega, Hooks, Guionista, Repurposing, Community, Calificador, Analista).

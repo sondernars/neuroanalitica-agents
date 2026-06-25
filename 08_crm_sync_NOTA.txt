@@ -1,0 +1,14 @@
+El agente CRM Sync no utiliza la API de Claude. Su función es puramente de consolidación de datos: combina la información del lead (pestaña Leads) con su score de calificación (pestaña Scoring) en un solo registro limpio, y determina la próxima acción de seguimiento según la prioridad asignada.
+
+Ver el código completo en el archivo del workflow exportado: NeuroAnalítica — Agente CRM Sync.json
+
+Lógica resumida:
+- Combina por posición los datos de Leads y Scoring usando un nodo Merge.
+- Determina la próxima acción según la prioridad:
+  - urgente_clinico → "Contactar HOY — revisión clínica inmediata"
+  - alta → "Contactar en 24h"
+  - media → "Seguimiento estándar en 48h"
+  - baja → "Seguimiento en 5 días o descartar"
+- Registra fecha de ingreso y estado inicial "nuevo".
+
+Igual que el Publicador, esta es una tarea determinística de organización de datos que no requiere generación de lenguaje ni juicio clínico, por lo que no se usa IA.
